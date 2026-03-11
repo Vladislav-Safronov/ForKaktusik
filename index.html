@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажёр Н и НН</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 0;
+            color: #4a5568;
+            font-size: 2rem;
+        }
+        .word {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 10px;
+            border: 2px dashed #cbd5e0;
+            word-break: break-word;
+        }
+        .progress {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        button {
+            font-size: 2rem;
+            padding: 0.5rem 2rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            font-weight: bold;
+        }
+        button:not(:disabled) {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        button:not(:disabled):hover {
+            transform: translateY(-2px);
+            filter: brightness(0.95);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #btn-n {
+            background: #4299e1;
+            color: white;
+        }
+        #btn-nn {
+            background: #ed8936;
+            color: white;
+        }
+        .message {
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            min-height: 3rem;
+            font-weight: bold;
+        }
+        .correct {
+            color: #38a169;
+        }
+        .incorrect {
+            color: #e53e3e;
+        }
+        .restart {
+            margin-top: 2rem;
+        }
+        #restart-btn {
+            font-size: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: #718096;
+            color: white;
+        }
+        .footer {
+            margin-top: 1rem;
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Н или НН?</h1>
+        <div class="progress" id="progress">0 / 0</div>
+        <div class="word" id="word">Загрузка...</div>
+        <div class="buttons">
+            <button id="btn-n" aria-label="Одна Н">Н</button>
+            <button id="btn-nn" aria-label="Две НН">НН</button>
+        </div>
+        <div class="message" id="message"></div>
+        <div class="restart">
+            <button id="restart-btn">⟲ Начать заново</button>
+        </div>
+    </div>
+
+    <script>
+        // Исправленный JSON от пользователя
+        const wordsData = [
+            { "id": 1, "text": "бесприда*ица", "answer": "нн" },
+            { "id": 2, "text": "да*ый", "answer": "нн" },
+            { "id": 3, "text": "домороще*ый", "answer": "нн" },
+            { "id": 4, "text": "речь строй*а", "answer": "н" },
+            { "id": 5, "text": "и собра*а", "answer": "н" },
+            { "id": 6, "text": "кова*ый кузнецом", "answer": "нн" },
+            { "id": 7, "text": "бессребре*ик", "answer": "н" },
+            { "id": 8, "text": "бестала*ое существо", "answer": "нн" },
+            { "id": 9, "text": "негада*ый", "answer": "нн" },
+            { "id": 10, "text": "моше*ик", "answer": "нн" },
+            { "id": 11, "text": "незва*ый гость", "answer": "н" },
+            { "id": 12, "text": "пря*ый запах", "answer": "н" },
+            { "id": 13, "text": "говорить пута*о", "answer": "н" },
+            { "id": 14, "text": "медле*ый", "answer": "нн" },
+            { "id": 15, "text": "мчаться беше*о", "answer": "н" },
+            { "id": 16, "text": "окая*ые дни", "answer": "нн" },
+            { "id": 17, "text": "подли*ые сведения", "answer": "нн" },
+            { "id": 18, "text": "отчая*ый", "answer": "нн" },
+            { "id": 19, "text": "обеща*ый", "answer": "нн" },
+            { "id": 20, "text": "гости*ый двор", "answer": "н" },
+            { "id": 21, "text": "завеща*ый", "answer": "нн" },
+            { "id": 22, "text": "сребе*ик", "answer": "н" },
+            { "id": 23, "text": "завеща*ый подарок", "answer": "нн" },
+            { "id": 24, "text": "пуще*ая стрела", "answer": "нн" },
+            { "id": 25, "text": "купле*ый", "answer": "нн" },
+            { "id": 26, "text": "смышлё*ый", "answer": "н" },
+            { "id": 27, "text": "слоё*ое тесто", "answer": "н" },
+            { "id": 28, "text": "реше*ый", "answer": "нн" },
+            { "id": 29, "text": "перчё*ое мясо", "answer": "н" },
+            { "id": 30, "text": "нечая*ая встреча", "answer": "нн" },
+            { "id": 31, "text": "нетле*ый образ", "answer": "нн" },
+            { "id": 32, "text": "малыши измуче*ы дорогой", "answer": "н" },
+            { "id": 33, "text": "их отношения запута*ы", "answer": "нн" },
+            { "id": 34, "text": "и стра*ы", "answer": "нн" },
+            { "id": 35, "text": "нежда*ый", "answer": "нн" },
+            { "id": 36, "text": "жела*ый", "answer": "нн" },
+            { "id": 37, "text": "чита*ый", "answer": "нн" },
+            { "id": 38, "text": "окая*ый", "answer": "нн" },
+            { "id": 39, "text": "неслыха*ый", "answer": "нн" },
+            { "id": 40, "text": "невида*ый", "answer": "нн" },
+            { "id": 41, "text": "свяще*ый", "answer": "нн" },
+            { "id": 42, "text": "безымя*ый", "answer": "нн" },
+            { "id": 43, "text": "штукатуре*ый", "answer": "н" },
+            { "id": 44, "text": "бесприда*ница", "answer": "н" },
+            { "id": 45, "text": "ставле*ик", "answer": "нн" },
+            { "id": 46, "text": "гума*ость", "answer": "нн" },
+            { "id": 47, "text": "смотреть восхищё*о", "answer": "нн" },
+            { "id": 48, "text": "исти*о красив", "answer": "нн" },
+            { "id": 49, "text": "возбуждё*о", "answer": "нн" },
+            { "id": 50, "text": "изыска*ый", "answer": "нн" },
+            { "id": 51, "text": "укоризне*ый", "answer": "нн" },
+            { "id": 52, "text": "единомышле*ик", "answer": "нн" },
+            { "id": 53, "text": "охра*ик", "answer": "нн" },
+            { "id": 54, "text": "гума*изм", "answer": "н" },
+            { "id": 55, "text": "гости*ица", "answer": "н" },
+            { "id": 56, "text": "безымя*ый", "answer": "нн" },
+            { "id": 57, "text": "муче*ик", "answer": "н" },
+            { "id": 58, "text": "нечая*ый", "answer": "нн" }
+        ];
+
+        // Перемешивание массива (алгоритм Фишера-Йетса)
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Состояние приложения
+        let words = [];              // перемешанный массив
+        let currentIndex = 0;
+        let totalWords = 0;
+        let canAnswer = true;        // блокировка на время авто-перехода
+        let timeoutId = null;
+
+        // Элементы DOM
+        const wordEl = document.getElementById('word');
+        const progressEl = document.getElementById('progress');
+        const messageEl = document.getElementById('message');
+        const btnN = document.getElementById('btn-n');
+        const btnNN = document.getElementById('btn-nn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Инициализация или перезапуск
+        function initGame() {
+            // Перемешиваем слова и сохраняем
+            words = shuffleArray([...wordsData]); // копируем, чтобы не менять исходные данные
+            totalWords = words.length;
+            currentIndex = 0;
+            canAnswer = true;
+            if (timeoutId) clearTimeout(timeoutId);
+            messageEl.textContent = '';
+            btnN.disabled = false;
+            btnNN.disabled = false;
+            showCurrentWord();
+        }
+
+        // Отображение текущего слова и обновление счётчика
+        function showCurrentWord() {
+            if (currentIndex < totalWords) {
+                wordEl.textContent = words[currentIndex].text;
+                progressEl.textContent = `${currentIndex + 1} / ${totalWords}`;
+            } else {
+                // Все слова закончились
+                wordEl.textContent = '🎉 Молодец Кактусик!';
+                progressEl.textContent = `${totalWords} / ${totalWords}`;
+                btnN.disabled = true;
+                btnNN.disabled = true;
+                messageEl.textContent = 'Тренировка завершена';
+                messageEl.className = 'message correct';
+            }
+        }
+
+        // Обработка ответа
+        function handleAnswer(selected) {
+            if (!canAnswer || currentIndex >= totalWords) return;
+
+            // Блокируем кнопки, чтобы избежать повторных нажатий
+            canAnswer = false;
+            btnN.disabled = true;
+            btnNN.disabled = true;
+
+            const currentWord = words[currentIndex];
+            const isCorrect = (selected === currentWord.answer);
+
+            // Показываем сообщение
+            messageEl.textContent = isCorrect ? 'Молодец Кактусик)' : 'По попе! ;)';
+            messageEl.className = isCorrect ? 'message correct' : 'message incorrect';
+
+            // Запланируем переход к следующему слову через 1 секунду
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                // Переходим к следующему слову
+                currentIndex++;
+                if (currentIndex < totalWords) {
+                    // Показываем новое слово
+                    showCurrentWord();
+                    // Разблокируем кнопки
+                    canAnswer = true;
+                    btnN.disabled = false;
+                    btnNN.disabled = false;
+                } else {
+                    // Закончили: обновляем отображение (покажет завершение)
+                    showCurrentWord();
+                    // Кнопки уже заблокированы, оставляем как есть
+                    canAnswer = false; // лишнее, но для ясности
+                }
+                // Очищаем сообщение (оно исчезнет при новом слове)
+                messageEl.textContent = '';
+                timeoutId = null;
+            }, 1000);
+        }
+
+        // Обработчики кнопок
+        btnN.addEventListener('click', () => handleAnswer('н'));
+        btnNN.addEventListener('click', () => handleAnswer('нн'));
+
+        // Перезапуск по кнопке
+        restartBtn.addEventListener('click', () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            initGame();
+        });
+
+        // Старт игры при загрузке страницы
+        initGame();
+    </script>
+</body>
+</html>
